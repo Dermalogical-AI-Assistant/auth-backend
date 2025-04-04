@@ -5,8 +5,8 @@ config();
 
 @Injectable()
 export class KafkaConsumerService implements OnModuleInit {
-  private kafka = new Kafka({ brokers: [ process.env.KAFKA_URL ] });
-  private consumer = this.kafka.consumer({ groupId: 'skin-analysis-service-group' });
+  private kafka = new Kafka({ brokers: [ process.env.KAFKA_BROKER ] });
+  private consumer = this.kafka.consumer({ groupId: 'auth-service-group' });
 
   private handlers = new Map<string, (message: any) => Promise<void>>();
 
@@ -15,7 +15,7 @@ export class KafkaConsumerService implements OnModuleInit {
   async onModuleInit() {
     await this.consumer.connect();
 
-    const topics = ['user-created', 'user-updated', 'analysis-requested'];
+    const topics = Object.values('others');
     for (const topic of topics) {
       await this.consumer.subscribe({ topic, fromBeginning: false });
     }

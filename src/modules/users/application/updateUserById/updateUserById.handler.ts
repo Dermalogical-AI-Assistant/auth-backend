@@ -4,12 +4,18 @@ import { UpdateUserByIdCommand } from "./updateUserById.command";
 import { UpdateUserByIdRequestBody } from "./updateUserById.request-body";
 import { PrismaService } from "src/database";
 import { ValidationService } from "src/modules/services";
+import { KafkaProducerService } from "src/modules/kafka/services";
+import { UserTopic } from "src/common/topic/user.topic";
 
 @CommandHandler(UpdateUserByIdCommand)
 export class UpdateUserByIdHandler
   implements ICommandHandler<UpdateUserByIdCommand>
 {
-  constructor(private readonly dbContext: PrismaService, private readonly validationService: ValidationService) {}
+  constructor(
+    private readonly dbContext: PrismaService,
+    private readonly validationService: ValidationService,
+    private readonly kafkaProducer: KafkaProducerService
+  ) {}
 
   public async execute(command: UpdateUserByIdCommand): Promise<void> {
     return this.updateUserById(command.id, command.body);
@@ -23,7 +29,7 @@ export class UpdateUserByIdHandler
 
     await this.validationService.validateUserExistsById(id);
 
-    await this.dbContext.user.update({
+    const user = await this.dbContext.user.update({
       where: { id },
       data: {
         name,
@@ -35,6 +41,18 @@ export class UpdateUserByIdHandler
         dob: dayjs(dob, { utc: true }).toDate(),
         avatar,
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        location: true,
+        dob: true,
+        gender: true,
+        avatar: true,
+        role: true,
+      }
     });
+
+    await this.kafkaProducer.sendMessage(UserTopic.UPDATE_USER, user);
   }
 }

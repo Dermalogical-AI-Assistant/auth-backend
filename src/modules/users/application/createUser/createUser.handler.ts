@@ -5,12 +5,13 @@ import { PrismaService } from "src/database";
 import * as dayjs from "dayjs";
 import { hashString } from "src/common/utils/string";
 import { LoginUserDto } from "src/common/dto/loginUser.dto";
-import { RoleType } from "@prisma/client";
 import { BadRequestException } from "@nestjs/common";
+import { KafkaProducerService } from "src/modules/kafka/services";
+import { UserTopic } from "src/common/topic/user.topic";
 
 @CommandHandler(CreateUserCommand)
 export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
-  constructor(private readonly dbContext: PrismaService) {}
+  constructor(private readonly dbContext: PrismaService, private readonly kafkaProducer: KafkaProducerService) {}
 
   public async execute(command: CreateUserCommand): Promise<LoginUserDto> {
     await this.validateUserExists(command.body.email);
@@ -57,6 +58,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
       },
     });
 
+    await this.kafkaProducer.sendMessage(UserTopic.CREATE_USER, user);
     return user;
   }
 

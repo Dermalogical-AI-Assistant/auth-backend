@@ -5,7 +5,7 @@ config();
 
 @Injectable()
 export class KafkaProducerService implements OnModuleInit {
-  private kafka = new Kafka({ brokers: [ process.env.KAFKA_URL ] });
+  private kafka = new Kafka({ brokers: [ process.env.KAFKA_BROKER ] });
   private producer = this.kafka.producer();
 
   async onModuleInit() {

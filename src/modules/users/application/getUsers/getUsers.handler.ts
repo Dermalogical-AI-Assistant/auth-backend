@@ -84,6 +84,7 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
           avatar: true,
           dob: true,
           role: true,
+          createdAt: true,
         },
         orderBy: getOrderByDefault(order),
         skip: page * perPage,
