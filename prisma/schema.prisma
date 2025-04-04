@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator nestjsDto {
+  provider                        = "prisma-generator-nestjs-dto"
+  output                          = "../src/generated"
+  outputToNestJsResourceStructure = "false"
+  flatResourceStructure           = "false"
+  exportRelationModifierClasses   = "true"
+  reExport                        = "true"
+  createDtoPrefix                 = "Create"
+  updateDtoPrefix                 = "Update"
+  dtoSuffix                       = "Dto"
+  entityPrefix                    = ""
+  entitySuffix                    = "Entity"
+  classValidation                 = "true"
+  fileNamingStyle                 = "kebab"
+  noDependencies                  = "false"
+  outputType                      = "class"
+  prettier                        = "true"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum RoleType {
+  USER
+  ADMIN
+}
+
+model Token {
+  id           String @id(map: "pk_token") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  deviceId     String @map("device_id")
+  userId       String @map("user_id") @db.Uuid
+  refreshToken String @map("refresh_token") @db.VarChar(255)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_token_user")
+
+  @@unique([deviceId, userId], map: "ixuq_token_user_device")
+  @@map("token")
+}
+
+model User {
+  id        String    @id(map: "pk_user") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  name      String    @map("name") @db.VarChar(255)
+  avatar    String?   @map("avatar") @db.VarChar(255)
+  phone     String?   @map("phone") @db.VarChar(15)
+  email     String    @unique @map("email") @db.VarChar(255)
+  location  String?   @map("location") @db.VarChar(255)
+  dob       DateTime? @map("date_of_birth") @db.Timestamptz(6)
+  gender    Gender    @default(FEMALE) @map("gender")
+  password  String    @map("password") @db.VarChar(255)
+  role      RoleType  @default(USER) @map("role")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tokens         Token[]
+
+  @@map("user")
+}

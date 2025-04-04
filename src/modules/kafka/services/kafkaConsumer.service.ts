@@ -1,0 +1,41 @@
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Kafka } from 'kafkajs';
+import { config } from "dotenv";
+config();
+
+@Injectable()
+export class KafkaConsumerService implements OnModuleInit {
+  private kafka = new Kafka({ brokers: [ process.env.KAFKA_URL ] });
+  private consumer = this.kafka.consumer({ groupId: 'skin-analysis-service-group' });
+
+  private handlers = new Map<string, (message: any) => Promise<void>>();
+
+  constructor() {}
+
+  async onModuleInit() {
+    await this.consumer.connect();
+
+    const topics = ['user-created', 'user-updated', 'analysis-requested'];
+    for (const topic of topics) {
+      await this.consumer.subscribe({ topic, fromBeginning: false });
+    }
+
+    await this.consumer.run({
+      eachMessage: async ({ topic, message }) => {
+        const parsedMessage = JSON.parse(message.value.toString());
+        console.log(`Received message on topic "${topic}":`, parsedMessage);
+
+        const handler = this.handlers.get(topic);
+        if (handler) {
+          await handler(parsedMessage);
+        } else {
+          console.warn(`No handler found for topic "${topic}"`);
+        }
+      },
+    });
+  }
+
+  registerHandler(topic: string, handler: (message: any) => Promise<void>) {
+    this.handlers.set(topic, handler);
+  }
+}
