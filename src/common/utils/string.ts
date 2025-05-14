@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
 import * as bcrypt from 'bcrypt';
-import { NotificationType } from "../enum/notification.enum";
 
 export const filterString = (
     search?: string,
@@ -20,20 +19,4 @@ export const hashString = (password: string) => {
     const hashedPassword = bcrypt.hashSync(password, salt);
 
     return hashedPassword;
-}
-
-export const getMessageBody = (option: {fromName: string, notificationType: NotificationType}) => {
-    const { fromName, notificationType } = option;
-
-    const mappedNotificationType = {
-        COMMENT: 'has commentted on your news',
-        REPLIED: 'has replied to your comment',
-        REACTION_NEWS: 'has given a reaction to your news',
-        REACTION_COMMENT: 'has given a reaction to your comment',
-        FOLLOWED: 'has followed you',
-        NEWS_VERIFY: 'has verified your news',
-        NEWS_REJECT: 'has rejected your news'
-    }
-
-    return `${fromName} ${mappedNotificationType[notificationType]}`
 }

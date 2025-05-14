@@ -15,8 +15,8 @@ import { LoginUserDto } from "src/common/dto/loginUser.dto";
   version: "1",
 })
 @ApiBearerAuth()
-// @UseGuards(AuthenGuard, RoleGuard)
-// @Role(RoleType.ADMIN)
+@UseGuards(AuthenGuard, RoleGuard)
+@Role(RoleType.ADMIN)
 export class CreateUserEndpoint {
   constructor(protected commandBus: CommandBus) {}
 
