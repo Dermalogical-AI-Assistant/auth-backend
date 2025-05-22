@@ -5,16 +5,17 @@ FROM node:18
 WORKDIR /app
 
 # Copy package.json and install dependencies
-COPY package*.json ./
+COPY package.json ./
 RUN npm install
 
 # Copy application code
 COPY . .
 
-RUN npm run prisma:m
-
 # Expose port
 EXPOSE 4001
 
 # Start application
-CMD ["npm", "run", "dev"]
+RUN npm run prisma:g
+RUN npm run build
+
+CMD [ "node", "dist/main.js" ]
