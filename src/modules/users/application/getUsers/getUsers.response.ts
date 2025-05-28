@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Gender, RoleType } from '@prisma/client';
 import { PaginatedOutputDto } from 'src/common/dto/pageOutput.dto';
-import { UserDto } from 'src/generated';
 
 export class GetUsersResponse {
   id: string;
